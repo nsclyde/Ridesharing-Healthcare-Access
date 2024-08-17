@@ -1,0 +1,701 @@
+City,t,value
+Amarillo,0,1308
+Amarillo,1,1317
+Amarillo,2,698
+Amarillo,3,1034
+Amarillo,4,1208
+Amarillo,5,987
+Amarillo,6,1729
+Amarillo,7,5696
+Amarillo,8,4767
+Amarillo,9,5927
+Amarillo,10,7033
+Amarillo,11,7720
+Amarillo,12,6547
+Amarillo,13,7918
+Amarillo,14,6031
+Amarillo,15,6468
+Amarillo,16,7406
+Amarillo,17,6419
+Amarillo,18,7015
+Amarillo,19,7362
+Amarillo,20,7901
+Amarillo,21,8091
+Amarillo,22,9826
+Amarillo,23,8088
+Amarillo,24,7744
+Amarillo,25,8392
+Amarillo,26,6874
+Amarillo,27,8044
+Amarillo,28,8232
+Amarillo,29,7674
+Amarillo,30,8763
+Amarillo,31,10738
+Amarillo,32,9357
+Amarillo,33,9607
+Amarillo,34,10448
+Amarillo,35,9803
+Amarillo,36,10240
+Amarillo,37,10303
+Amarillo,38,9567
+Amarillo,39,9435
+Amarillo,40,10998
+Amarillo,41,6403
+Amarillo,42,3591
+Amarillo,43,2898
+Amarillo,44,9250
+Amarillo,45,9293
+Amarillo,46,7873
+Amarillo,47,9363
+Amarillo,48,8162
+Amarillo,49,9721
+Amarillo,50,9853
+Amarillo,51,9551
+Amarillo,52,9573
+Amarillo,53,9587
+Amarillo,54,11060
+Amarillo,55,9419
+Amarillo,56,8622
+Amarillo,57,0
+Amarillo,58,0
+Amarillo,59,0
+Amarillo,60,13794
+Amarillo,61,15237
+Amarillo,62,13520
+Amarillo,63,12386
+Amarillo,64,14388
+Amarillo,65,13861
+Amarillo,66,15562
+Amarillo,67,15025
+Amarillo,68,16481
+Amarillo,69,11182
+Amarillo,70,14103
+Amarillo,71,16078
+Amarillo,72,13794
+Amarillo,73,15237
+Amarillo,74,13520
+Amarillo,75,12667
+Amarillo,76,17212
+Amarillo,77,14253
+Amarillo,78,15260
+Amarillo,79,16692
+Amarillo,80,16778
+Amarillo,81,15228
+Amarillo,82,16451
+Amarillo,83,14997
+Amarillo,84,13392
+Amarillo,85,14453
+Amarillo,86,15622
+Amarillo,87,16547
+Amarillo,88,18113
+Amarillo,89,16002
+Amarillo,90,15416
+Amarillo,91,12632
+Amarillo,92,10070
+Amarillo,93,12046
+Amarillo,94,15440
+Amarillo,95,14915
+Amarillo,96,15026
+Amarillo,97,14281
+Amarillo,98,14300
+Amarillo,99,13135
+Austin,0,8102
+Austin,1,10326
+Austin,2,9952
+Austin,3,7739
+Austin,4,10054
+Austin,5,9128
+Austin,6,9903
+Austin,7,8864
+Austin,8,10010
+Austin,9,10023
+Austin,10,9938
+Austin,11,9988
+Austin,12,9824
+Austin,13,11197
+Austin,14,9999
+Austin,15,6730
+Austin,16,9337
+Austin,17,9536
+Austin,18,9775
+Austin,19,9272
+Austin,20,9225
+Austin,21,10022
+Austin,22,10872
+Austin,23,10761
+Austin,24,9715
+Austin,25,10422
+Austin,26,7000
+Austin,27,8145
+Austin,28,8760
+Austin,29,8195
+Austin,30,8885
+Austin,31,9248
+Austin,32,8308
+Austin,33,7939
+Austin,34,8085
+Austin,35,8436
+Austin,36,7761
+Austin,37,9537
+Austin,38,6688
+Austin,39,8380
+Austin,40,5978
+Austin,41,5963
+Austin,42,6050
+Austin,43,5691
+Austin,44,6419
+Austin,45,6024
+Austin,46,4850
+Austin,47,8581
+Austin,48,5368
+Austin,49,5107
+Austin,50,6910
+Austin,51,7117
+Austin,52,5936
+Austin,53,4874
+Austin,54,6168
+Austin,55,6459
+Austin,56,6764
+Austin,57,6781
+Austin,58,4852
+Austin,59,6957
+Austin,60,5026
+Austin,61,4721
+Austin,62,4162
+Austin,63,3789
+Austin,64,4070
+Austin,65,4147
+Austin,66,4923
+Austin,67,5498
+Austin,68,5597
+Austin,69,3749
+Austin,70,5612
+Austin,71,5432
+Austin,72,4032
+Austin,73,5093
+Austin,74,4894
+Austin,75,5707
+Austin,76,7547
+Austin,77,5497
+Austin,78,6737
+Austin,79,6861
+Austin,80,7270
+Austin,81,6551
+Austin,82,7813
+Austin,83,7926
+Austin,84,4201
+Austin,85,4578
+Austin,86,2615
+Austin,87,3573
+Austin,88,2904
+Austin,89,4693
+Austin,90,2407
+Austin,91,706
+Austin,92,429
+Austin,93,1073
+Austin,94,874
+Austin,95,624
+Austin,96,1392
+Austin,97,2290
+Austin,98,2494
+Austin,99,2424
+Dallas,0,17500
+Dallas,1,19000
+Dallas,2,18000
+Dallas,3,1800
+Dallas,4,1800
+Dallas,5,1800
+Dallas,6,2166
+Dallas,7,1649
+Dallas,8,1680
+Dallas,9,0
+Dallas,10,0
+Dallas,11,0
+Dallas,12,18000
+Dallas,13,19000
+Dallas,14,16000
+Dallas,15,15000
+Dallas,16,16000
+Dallas,17,15500
+Dallas,18,1800
+Dallas,19,1980
+Dallas,20,1890
+Dallas,21,1890
+Dallas,22,1980
+Dallas,23,1890
+Dallas,24,0
+Dallas,25,0
+Dallas,26,0
+Dallas,27,0
+Dallas,28,0
+Dallas,29,0
+Dallas,30,0
+Dallas,31,0
+Dallas,32,0
+Dallas,33,0
+Dallas,34,0
+Dallas,35,0
+Dallas,36,0
+Dallas,37,0
+Dallas,38,0
+Dallas,39,0
+Dallas,40,0
+Dallas,41,0
+Dallas,42,0
+Dallas,43,0
+Dallas,44,0
+Dallas,45,0
+Dallas,46,0
+Dallas,47,0
+Dallas,48,0
+Dallas,49,0
+Dallas,50,0
+Dallas,51,0
+Dallas,52,0
+Dallas,53,0
+Dallas,54,0
+Dallas,55,0
+Dallas,56,0
+Dallas,57,0
+Dallas,58,0
+Dallas,59,0
+Dallas,60,0
+Dallas,61,0
+Dallas,62,0
+Dallas,63,0
+Dallas,64,0
+Dallas,65,0
+Dallas,66,0
+Dallas,67,0
+Dallas,68,0
+Dallas,69,0
+Dallas,70,0
+Dallas,71,0
+Dallas,72,0
+Dallas,73,0
+Dallas,74,0
+Dallas,75,0
+Dallas,76,0
+Dallas,77,0
+Dallas,78,0
+Dallas,79,0
+Dallas,80,0
+Dallas,81,0
+Dallas,82,0
+Dallas,83,0
+Dallas,84,0
+Dallas,85,0
+Dallas,86,0
+Dallas,87,0
+Dallas,88,0
+Dallas,89,0
+Dallas,90,0
+Dallas,91,0
+Dallas,92,0
+Dallas,93,0
+Dallas,94,0
+Dallas,95,0
+Dallas,96,0
+Dallas,97,0
+Dallas,98,0
+Dallas,99,0
+El Paso,0,182514
+El Paso,1,197309
+El Paso,2,155898
+El Paso,3,136851
+El Paso,4,147879
+El Paso,5,134788
+El Paso,6,127846
+El Paso,7,134856
+El Paso,8,140818
+El Paso,9,107499
+El Paso,10,117524
+El Paso,11,128375
+El Paso,12,105700
+El Paso,13,119327
+El Paso,14,105066
+El Paso,15,105727
+El Paso,16,111369
+El Paso,17,99003
+El Paso,18,101734
+El Paso,19,109736
+El Paso,20,110206
+El Paso,21,106523
+El Paso,22,117771
+El Paso,23,112750
+El Paso,24,112899
+El Paso,25,114774
+El Paso,26,113466
+El Paso,27,107962
+El Paso,28,113440
+El Paso,29,106364
+El Paso,30,114883
+El Paso,31,116466
+El Paso,32,108027
+El Paso,33,119404
+El Paso,34,119524
+El Paso,35,114297
+El Paso,36,120863
+El Paso,37,122161
+El Paso,38,115540
+El Paso,39,108850
+El Paso,40,110077
+El Paso,41,102767
+El Paso,42,107376
+El Paso,43,102742
+El Paso,44,92747
+El Paso,45,103046
+El Paso,46,102482
+El Paso,47,116379
+El Paso,48,105362
+El Paso,49,105221
+El Paso,50,94154
+El Paso,51,106703
+El Paso,52,116176
+El Paso,53,108981
+El Paso,54,101663
+El Paso,55,88098
+El Paso,56,99458
+El Paso,57,97971
+El Paso,58,93533
+El Paso,59,104624
+El Paso,60,109039
+El Paso,61,110887
+El Paso,62,105492
+El Paso,63,99936
+El Paso,64,108788
+El Paso,65,102898
+El Paso,66,108007
+El Paso,67,113972
+El Paso,68,122329
+El Paso,69,116347
+El Paso,70,116455
+El Paso,71,124958
+El Paso,72,115945
+El Paso,73,116988
+El Paso,74,113916
+El Paso,75,107078
+El Paso,76,118824
+El Paso,77,110133
+El Paso,78,115414
+El Paso,79,121204
+El Paso,80,118880
+El Paso,81,112366
+El Paso,82,118324
+El Paso,83,117296
+El Paso,84,103316
+El Paso,85,122749
+El Paso,86,106180
+El Paso,87,102296
+El Paso,88,116255
+El Paso,89,111042
+El Paso,90,99723
+El Paso,91,80928
+El Paso,92,100402
+El Paso,93,91134
+El Paso,94,93385
+El Paso,95,89311
+El Paso,96,88761
+El Paso,97,88221
+El Paso,98,76141
+El Paso,99,77249
+Fort Worth,0,46901
+Fort Worth,1,56331
+Fort Worth,2,55587
+Fort Worth,3,42672
+Fort Worth,4,47729
+Fort Worth,5,47589
+Fort Worth,6,47451
+Fort Worth,7,51488
+Fort Worth,8,50775
+Fort Worth,9,50519
+Fort Worth,10,52893
+Fort Worth,11,54043
+Fort Worth,12,44234
+Fort Worth,13,47078
+Fort Worth,14,47122
+Fort Worth,15,34162
+Fort Worth,16,48624
+Fort Worth,17,46948
+Fort Worth,18,48171
+Fort Worth,19,53363
+Fort Worth,20,50069
+Fort Worth,21,6972
+Fort Worth,22,7684
+Fort Worth,23,6212
+Fort Worth,24,14599
+Fort Worth,25,17495
+Fort Worth,26,16529
+Fort Worth,27,6961
+Fort Worth,28,6314
+Fort Worth,29,5430
+Fort Worth,30,7293
+Fort Worth,31,7596
+Fort Worth,32,6945
+Fort Worth,33,6268
+Fort Worth,34,9026
+Fort Worth,35,6115
+Fort Worth,36,6747
+Fort Worth,37,7365
+Fort Worth,38,6659
+Fort Worth,39,7705
+Fort Worth,40,5952
+Fort Worth,41,7146
+Fort Worth,42,6582
+Fort Worth,43,5333
+Fort Worth,44,5335
+Fort Worth,45,6056
+Fort Worth,46,5749
+Fort Worth,47,7269
+Fort Worth,48,6921
+Fort Worth,49,7054
+Fort Worth,50,6548
+Fort Worth,51,6136
+Fort Worth,52,4573
+Fort Worth,53,6436
+Fort Worth,54,6985
+Fort Worth,55,5908
+Fort Worth,56,6045
+Fort Worth,57,6268
+Fort Worth,58,6458
+Fort Worth,59,6898
+Fort Worth,60,5251
+Fort Worth,61,6009
+Fort Worth,62,5633
+Fort Worth,63,4526
+Fort Worth,64,4973
+Fort Worth,65,5345
+Fort Worth,66,5424
+Fort Worth,67,5092
+Fort Worth,68,5466
+Fort Worth,69,4672
+Fort Worth,70,4460
+Fort Worth,71,4679
+Fort Worth,72,4012
+Fort Worth,73,5113
+Fort Worth,74,4460
+Fort Worth,75,4299
+Fort Worth,76,4704
+Fort Worth,77,4515
+Fort Worth,78,4729
+Fort Worth,79,16840
+Fort Worth,80,17483
+Fort Worth,81,14243
+Fort Worth,82,5537
+Fort Worth,83,6218
+Fort Worth,84,4630
+Fort Worth,85,5411
+Fort Worth,86,0
+Fort Worth,87,0
+Fort Worth,88,0
+Fort Worth,89,0
+Fort Worth,90,0
+Fort Worth,91,0
+Fort Worth,92,0
+Fort Worth,93,0
+Fort Worth,94,0
+Fort Worth,95,0
+Fort Worth,96,0
+Fort Worth,97,0
+Fort Worth,98,0
+Fort Worth,99,0
+Lubbock,0,258
+Lubbock,1,791
+Lubbock,2,458
+Lubbock,3,519
+Lubbock,4,626
+Lubbock,5,592
+Lubbock,6,689
+Lubbock,7,285
+Lubbock,8,333
+Lubbock,9,197
+Lubbock,10,343
+Lubbock,11,401
+Lubbock,12,1113
+Lubbock,13,1267
+Lubbock,14,1191
+Lubbock,15,297
+Lubbock,16,324
+Lubbock,17,1044
+Lubbock,18,593
+Lubbock,19,877
+Lubbock,20,869
+Lubbock,21,625
+Lubbock,22,300
+Lubbock,23,796
+Lubbock,24,305
+Lubbock,25,450
+Lubbock,26,103
+Lubbock,27,99
+Lubbock,28,496
+Lubbock,29,320
+Lubbock,30,287
+Lubbock,31,107
+Lubbock,32,261
+Lubbock,33,931
+Lubbock,34,157
+Lubbock,35,209
+Lubbock,36,248
+Lubbock,37,327
+Lubbock,38,208
+Lubbock,39,84
+Lubbock,40,128
+Lubbock,41,64
+Lubbock,42,181
+Lubbock,43,67
+Lubbock,44,281
+Lubbock,45,291
+Lubbock,46,636
+Lubbock,47,493
+Lubbock,48,312
+Lubbock,49,395
+Lubbock,50,219
+Lubbock,51,235
+Lubbock,52,77
+Lubbock,53,135
+Lubbock,54,66
+Lubbock,55,95
+Lubbock,56,0
+Lubbock,57,139
+Lubbock,58,0
+Lubbock,59,0
+Lubbock,60,0
+Lubbock,61,0
+Lubbock,62,0
+Lubbock,63,0
+Lubbock,64,0
+Lubbock,65,0
+Lubbock,66,0
+Lubbock,67,0
+Lubbock,68,0
+Lubbock,69,0
+Lubbock,70,0
+Lubbock,71,0
+Lubbock,72,0
+Lubbock,73,0
+Lubbock,74,0
+Lubbock,75,0
+Lubbock,76,0
+Lubbock,77,0
+Lubbock,78,0
+Lubbock,79,0
+Lubbock,80,0
+Lubbock,81,0
+Lubbock,82,0
+Lubbock,83,0
+Lubbock,84,0
+Lubbock,85,0
+Lubbock,86,0
+Lubbock,87,0
+Lubbock,88,0
+Lubbock,89,0
+Lubbock,90,0
+Lubbock,91,0
+Lubbock,92,0
+Lubbock,93,0
+Lubbock,94,0
+Lubbock,95,0
+Lubbock,96,0
+Lubbock,97,0
+Lubbock,98,0
+Lubbock,99,0
+Plano,0,418
+Plano,1,477
+Plano,2,502
+Plano,3,434
+Plano,4,510
+Plano,5,493
+Plano,6,703
+Plano,7,546
+Plano,8,708
+Plano,9,0
+Plano,10,0
+Plano,11,0
+Plano,12,642
+Plano,13,546
+Plano,14,788
+Plano,15,385
+Plano,16,408
+Plano,17,423
+Plano,18,554
+Plano,19,449
+Plano,20,605
+Plano,21,412
+Plano,22,568
+Plano,23,482
+Plano,24,0
+Plano,25,0
+Plano,26,0
+Plano,27,0
+Plano,28,0
+Plano,29,0
+Plano,30,0
+Plano,31,0
+Plano,32,0
+Plano,33,0
+Plano,34,0
+Plano,35,0
+Plano,36,0
+Plano,37,0
+Plano,38,0
+Plano,39,0
+Plano,40,0
+Plano,41,0
+Plano,42,0
+Plano,43,0
+Plano,44,0
+Plano,45,0
+Plano,46,0
+Plano,47,0
+Plano,48,0
+Plano,49,0
+Plano,50,0
+Plano,51,0
+Plano,52,0
+Plano,53,0
+Plano,54,0
+Plano,55,0
+Plano,56,0
+Plano,57,0
+Plano,58,0
+Plano,59,0
+Plano,60,0
+Plano,61,0
+Plano,62,0
+Plano,63,0
+Plano,64,0
+Plano,65,0
+Plano,66,0
+Plano,67,0
+Plano,68,0
+Plano,69,0
+Plano,70,0
+Plano,71,0
+Plano,72,0
+Plano,73,0
+Plano,74,0
+Plano,75,0
+Plano,76,0
+Plano,77,0
+Plano,78,0
+Plano,79,0
+Plano,80,0
+Plano,81,0
+Plano,82,0
+Plano,83,0
+Plano,84,0
+Plano,85,0
+Plano,86,0
+Plano,87,0
+Plano,88,0
+Plano,89,0
+Plano,90,0
+Plano,91,0
+Plano,92,0
+Plano,93,0
+Plano,94,0
+Plano,95,0
+Plano,96,0
+Plano,97,0
+Plano,98,0
+Plano,99,0

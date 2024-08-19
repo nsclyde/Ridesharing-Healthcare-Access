@@ -409,11 +409,6 @@ Amarillo_Addresses["mean_duration"]=(Amarillo_Addresses["duration_1"]+\
         Amarillo_Addresses["duration_6"]+Amarillo_Addresses["duration_7"]\
             +Amarillo_Addresses["duration_8"]+Amarillo_Addresses["duration_9"]
             +Amarillo_Addresses["duration_10"])/10
-
-Austin_Addresses = pd.read_csv("Data/Austin_Addresses_duration_Reproduction.csv")
-Amarillo_Addresses = pd.read_csv("Data/Amarillo_Addresses_duration_Reproduction.csv")
-Lubbock_Addresses = pd.read_csv("Data/Lubbock_Addresses_duration_Reproduction.csv")
-ElPaso_Addresses = pd.read_csv("Data/ElPaso_Addresses_duration_Reproduction.csv")
     
 Addresses = pd.concat([Austin_Addresses, Amarillo_Addresses, ElPaso_Addresses, Lubbock_Addresses], ignore_index=True)
 

@@ -1,4 +1,4 @@
-In this repository, we open-source the code accompanying the empirical and simulation analyses of *The Impact of Ridesharing Platforms on Healthcare Access*
+In this repository, we open-source the code accompanying the empirical and simulation analyses of *The Impact of Ridesharing Platforms on Healthcare Access*.
 
 
 # Empirical Analysis
@@ -18,7 +18,7 @@ This repository contains two code files, one as a python script and one as RMark
 <a id='files-emp'></a>
 ## Files
 
-* [Directions_API_Requests.py](https://github.com/nsclyde/Ridesharing-Healthcare-Access/blob/main/Directions_API_Requests.py): This is the code necessary to create the main data file for the empirical analysis in *The Impact of Ridesharing Platforms on Healthcare Access*. In order to run this code for yourself, you will need a Google API key and will need to update the timestamp of the request to a current timestamp (there is a comment in the file noting this) so the results may vary slightly from ours. The output of this file is saved separately as [uber_providers_Reproduction.zip](https://github.com/nsclyde/Ridesharing-Healthcare-Access/blob/main/Data/uber_providers_Reproduction.zip)
+* [Directions_API_Requests.py](https://github.com/nsclyde/Ridesharing-Healthcare-Access/blob/main/Directions_API_Requests.py): This is the code necessary to create the main data file for the empirical analysis in *The Impact of Ridesharing Platforms on Healthcare Access*. In order to run this code for yourself, you will need a Google API key and will need to update the timestamp of the request to a current timestamp (there is a comment in the file noting this) so the results may vary slightly from ours. The output of this file is saved separately as [uber_providers_Reproduction.zip](https://github.com/nsclyde/Ridesharing-Healthcare-Access/blob/main/Data/uber_providers_Reproduction.zip).
 
 * [Empirical Analyses.Rmd](https://github.com/nsclyde/Ridesharing-Healthcare-Access/blob/main/Empirical%20Analyses.Rmd): This is the RMarkdown file for the empirical analysis in *The Impact of Ridesharing Platforms on Healthcare Access*. 
 

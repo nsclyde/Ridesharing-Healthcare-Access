@@ -3,9 +3,9 @@ title: "Empirical Analyses Reproduction for "
 author: "Nick Clyde"
 date: "2023-03-02"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE, warning=FALSE}
@@ -170,7 +170,8 @@ print(latex_table, type = "latex")
 # Main Results
 
 ## Parallel Trends - Austin
-Try to get parallel trends with Austin, El Paso, Laredo, Lubbock, Amarillo, and Brownsville
+Try to get parallel trends with Austin, El Paso, Lubbock, and Amarillo
+
 ```{r}
 
 
@@ -362,14 +363,10 @@ mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(st_
 
 
 
-## Accessibility Analysis
-I use heterogeneous analysis
-
-setup for the addresses:
+# Mechanisms
 
 
-
-### Median walking duration
+## Median of mean walking duration
 
 ```{r}
 
@@ -512,9 +509,9 @@ Texas_miles <- Texas_miles %>%
 # prep for synthetic control
 dataprep.out <- dataprep(
   foo = Texas_miles,
-  predictors = c("value_5","value_10","value_15","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
+  predictors = c("value_5","value_10","value_15","value_20","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
   predictors.op = "mean",
-  time.predictors.prior = c(5,10,15,25,30,35,40,45,50,55),
+  time.predictors.prior = c(5,10,15,20,25,30,35,40,45,50,55),
   dependent = "value",
   unit.variable = "X",
   unit.names.variable = "City",
@@ -539,10 +536,15 @@ print(synth.tables$tab.pred)
 
 
 # Trends of miles offered: Austin vs. Synthetic Control City
+par(cex.lab = 1.3, cex.axis = 1.3, font.lab = 2) #change fonts
 path.plot(synth.res = synth.out, dataprep.res = dataprep.out, tr.intake=56,
           Ylab = "Transit Miles", Xlab = "Month")
 
+mean(gaps[0:56])
 
+mean(gaps[57:99])
+
+mean(dataprep.out$Y0plot%*%synth.out$solution.w)
 # Gaps in miles offered between Austin and Synthetic Control City 
 gaps.plot(synth.res = synth.out, dataprep.res = dataprep.out,
           Ylab = "Gap in Transit Riders", Xlab = "Month", tr.intake = 56, Main = NULL)
@@ -574,9 +576,9 @@ print(paste("Austin RMSPE ratio:",ratio))
 # prep for synthetic control with Amarillo as Placebo City
 dataprep.out <- dataprep(
   foo = Texas_miles,
-  predictors = c("value_5","value_10","value_15","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
+  predictors = c("value_5","value_10","value_15","value_20","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
   predictors.op = "mean",
-  time.predictors.prior = c(5,10,15,25,30,35,40,45,50,55),
+  time.predictors.prior = c(5,10,15,20,25,30,35,40,45,50,55),
   dependent = "value",
   unit.variable = "X",
   unit.names.variable = "City",
@@ -610,9 +612,9 @@ print(paste("Amarillo RMSPE ratio:",ratio))
 #prep for synthetic control with El Paso as Placebo City
 dataprep.out <- dataprep(
   foo = Texas_miles,
-  predictors = c("value_5","value_10","value_15","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
+  predictors = c("value_5","value_10","value_15","value_20","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
   predictors.op = "mean",
-  time.predictors.prior = c(5,10,15,25,30,35,40,45,50,55),
+  time.predictors.prior = c(5,10,15,20,25,30,35,40,45,50,55),
   dependent = "value",
   unit.variable = "X",
   unit.names.variable = "City",
@@ -645,9 +647,9 @@ print(paste("El Paso RMSPE ratio:",ratio))
 #prep for synthetic control with Lubbock as Placebo City
 dataprep.out <- dataprep(
   foo = Texas_miles,
-  predictors = c("value_5","value_10","value_15","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
+  predictors = c("value_5","value_10","value_15","value_20","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
   predictors.op = "mean",
-  time.predictors.prior = c(5,10,15,25,30,35,40,45,50,55),
+  time.predictors.prior = c(5,10,15,20,25,30,35,40,45,50,55),
   dependent = "value",
   unit.variable = "X",
   unit.names.variable = "City",
@@ -681,9 +683,9 @@ print(paste("Lubbock RMSPE ratio:",ratio))
 #prep for synthetic control with Dallas as Placebo City
 dataprep.out <- dataprep(
   foo = Texas_miles,
-  predictors = c("value_5","value_10","value_15","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
+  predictors = c("value_5","value_10","value_15","value_20","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
   predictors.op = "mean",
-  time.predictors.prior = c(5,10,15,25,30,35,40,45,50,55),
+  time.predictors.prior = c(5,10,15,20,25,30,35,40,45,50,55),
   dependent = "value",
   unit.variable = "X",
   unit.names.variable = "City",
@@ -716,9 +718,9 @@ print(paste("Dallas RMSPE ratio:",ratio))
 #prep for synthetic control with Fort Worth as Placebo City
 dataprep.out <- dataprep(
   foo = Texas_miles,
-  predictors = c("value_5","value_10","value_15","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
+  predictors = c("value_5","value_10","value_15","value_20","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
   predictors.op = "mean",
-  time.predictors.prior = c(5,10,15,25,30,35,40,45,50,55),
+  time.predictors.prior = c(5,10,15,20,25,30,35,40,45,50,55),
   dependent = "value",
   unit.variable = "X",
   unit.names.variable = "City",
@@ -751,9 +753,9 @@ print(paste("Fort Worth RMSPE ratio:",ratio))
 #prep for synthetic control with Plano as Placebo City
 dataprep.out <- dataprep(
   foo = Texas_miles,
-  predictors = c("value_5","value_10","value_15","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
+  predictors = c("value_5","value_10","value_15","value_20","value_25","value_30","value_35","value_40","value_45","value_50","value_55"),
   predictors.op = "mean",
-  time.predictors.prior = c(5,10,15,25,30,35,40,45,50,55),
+  time.predictors.prior = c(5,10,15,20,25,30,35,40,45,50,55),
   dependent = "value",
   unit.variable = "X",
   unit.names.variable = "City",
@@ -861,9 +863,9 @@ Try to get parallel trends with Laredo, El Paso, Lubbock, and Amarillo
 
 ```{r}
 
-uber_providers$similar_to_austin=ifelse(uber_providers$Prscrbr_City=="Laredo"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock",1,0)
+uber_providers$similar_to_laredo=ifelse(uber_providers$Prscrbr_City=="Laredo"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock",1,0)
 
-uber_filtered=subset(uber_providers, similar_to_austin==1)
+uber_filtered=subset(uber_providers, similar_to_laredo==1)
 
 # Group by 'PRSCRBR_NPI' and count the number of unique 'Prscrbr_City'
 provider_city_count <- uber_filtered %>%
@@ -888,7 +890,7 @@ mixed_providers <- intersect(multi_city_providers, providers_with_austin)
 uber_providers <- uber_providers %>% 
   mutate(mixed = ifelse(PRSCRBR_NPI %in% mixed_providers, 1, 0))
 
-uber_providers$similar_to_austin=ifelse(uber_providers$mixed==0 &(uber_providers$Prscrbr_City=="Laredo"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock"),1,0)
+uber_providers$similar_to_laredo=ifelse(uber_providers$mixed==0 &(uber_providers$Prscrbr_City=="Laredo"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock"),1,0)
 
 
 temp=subset(uber_providers, Prscrbr_City=="Laredo")
@@ -897,7 +899,7 @@ uber_providers[uber_providers$PRSCRBR_NPI %in% unique(temp$PRSCRBR_NPI),]$treatm
 
 
 
-paralleltrends = felm(Tot_Clms ~ I(treatment_laredo*yearindicator) +  Bene_Avg_Risk_Scre|yearindicator + PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers, yearindicator<2018 & similar_to_austin==1))
+paralleltrends = felm(Tot_Clms ~ I(treatment_laredo*yearindicator) +  Bene_Avg_Risk_Scre|yearindicator + PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers, yearindicator<2018 & similar_to_laredo==1))
 
 
 stargazer(paralleltrends, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq"),
@@ -913,12 +915,12 @@ stargazer(paralleltrends, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser
 ```{r}
 
 
-column1 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) + AfterReentry |PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+column1 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) + AfterReentry |PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_laredo==1))
 
-column2 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+column2 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_laredo==1))
 
 
-column3 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+column3 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_laredo==1))
 
 
 #summary(riskregression)

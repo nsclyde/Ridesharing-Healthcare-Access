@@ -1,7 +1,7 @@
 ---
-title: "Empirical Analyses Reproduction for "
+title: "Empirical Analyses Reproduction for The Impact of Ridesharing Platforms on Healthcare Access"
 author: "Nick Clyde"
-date: "2023-03-02"
+date: "2023-09-26"
 output:
   html_document:
     df_print: paged
@@ -26,7 +26,8 @@ library(httpuv)
 library(psych)
 library(xtable)
 library(tidyr)
-
+library(purrr)
+library(stringr)
 ```
 
 # Reading in Data
@@ -111,7 +112,7 @@ uber_providers <- uber_providers %>%
 
 #create subset of data for variables of interest in only control and treatment cities
 temp=subset(uber_providers, similar_to_austin==1)
-temp2=temp[,c("yearindicator","Tot_Clms","Tot_Benes","Bene_Avg_Risk_Scre","Prscrbr_City","avg_pre_dual")]
+temp2=temp[,c("Tot_Clms","Tot_Benes","Bene_Avg_Risk_Scre","avg_pre_dual","Prscrbr_City","yearindicator")]
 
 #First Austin in before periods
 summary_stats=as.data.frame(describe(subset(temp2, Prscrbr_City=="Austin" & yearindicator<2018)))
@@ -132,7 +133,7 @@ statsafter=as.data.frame(selected_stats)
 stats=cbind(statspre,statsafter)
 
 
-# create latex
+# create latex, but need to remove last two rows that aren't required
 latex_table <- xtable(stats)
 print(latex_table, type = "latex")
 
@@ -157,7 +158,7 @@ statsafter=as.data.frame(selected_stats)
 stats=cbind(statspre,statsafter)
 
 
-# create latex
+# create latex, but need to remove last two rows that aren't required
 latex_table <- xtable(stats)
 print(latex_table, type = "latex")
 
@@ -210,8 +211,7 @@ column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre |
 stargazer(column1,column2,column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text",
-          title = "Parallel Trends")
+                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
 
@@ -238,8 +238,7 @@ column3 = felm(Tot_Benes ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre 
 stargazer(column1,  column2, column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text",
-          title = "Parallel Trends")
+                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(Tot_Benes)==FALSE)$Tot_Benes)
 
@@ -291,12 +290,12 @@ Main HTE results using the average for each provider from 2013-2015
 
 column1 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_avg_pre_risk)==FALSE))
 
-column2 = felm(Tot_Clms ~  I(treatment_group*AfterReentry)*st_avg_pre_risk + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_avg_pre_risk)==FALSE))
+column2 = felm(Tot_Clms ~  I(treatment_group*AfterReentry)+ I(I(treatment_group*AfterReentry)*st_avg_pre_risk) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_avg_pre_risk)==FALSE))
 
 
 column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(avg_pre_dual)==FALSE))
 
-column4 = felm(Tot_Clms ~  I(treatment_group*AfterReentry)*avg_pre_dual + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(avg_pre_dual)==FALSE))
+column4 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*avg_pre_dual) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(avg_pre_dual)==FALSE))
 
 
 
@@ -305,8 +304,7 @@ column4 = felm(Tot_Clms ~  I(treatment_group*AfterReentry)*avg_pre_dual + Bene_A
 stargazer(column1,column2, column3, column4, digits=2, no.space=TRUE, p.auto=TRUE, single.row=FALSE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'Yes', 'Yes', 'Yes','Yes', 'Yes','Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes', 'Yes','Yes')),
-          title = "Parallel Trends", type="text")
+                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes', 'Yes','Yes')), type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(avg_pre_dual)==FALSE)$Tot_Clms)
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(st_avg_pre_risk)==FALSE)$Tot_Clms)
@@ -334,12 +332,12 @@ uber_providers$st_risk_2015=uber_providers$risk_2015/stand_dev
 
 column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_risk_2015)==FALSE))
 
-column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry)*st_risk_2015 + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_risk_2015)==FALSE))
+column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*st_risk_2015) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_risk_2015)==FALSE))
 
 
 column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(dual_2015)==FALSE))
 
-column4 = felm(Tot_Clms ~I(treatment_group*AfterReentry)*dual_2015 + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(dual_2015)==FALSE))
+column4 = felm(Tot_Clms ~I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*dual_2015) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(dual_2015)==FALSE))
 
 
 
@@ -351,8 +349,7 @@ column4 = felm(Tot_Clms ~I(treatment_group*AfterReentry)*dual_2015 + Bene_Avg_Ri
 stargazer(column1,column2, column3, column4, digits=2, no.space=TRUE, p.auto=TRUE, single.row=FALSE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'Yes', 'Yes', 'Yes','Yes', 'Yes','Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes', 'Yes','Yes')),
-          title = "Parallel Trends", type="text")
+                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes', 'Yes','Yes')), type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(avg_pre_dual)==FALSE)$Tot_Clms)
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(st_avg_pre_risk)==FALSE)$Tot_Clms)
@@ -369,12 +366,15 @@ mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(st_
 ## Median of mean walking duration
 
 ```{r}
-
+#mean_duration is first calculated in the python file
+#find the median of all the mean_duration variables
 median_of_mean=median(subset(uber_providers,similar_to_austin==1 & is.na(mean_duration)==FALSE)$mean_duration)
 
+#Define urban as providers who are more accessible via public transportation
 uber_providers$Urban=ifelse(uber_providers$mean_duration<median_of_mean, 1, 0)
 uber_filtered=subset(uber_providers, similar_to_austin==1)
 
+#do this to find all providers who switch from more accessible to less accessible groups in the years of data
 uber_filtered <- uber_filtered %>%
   group_by(PRSCRBR_NPI) %>%
   mutate(switching = ifelse(n_distinct(Urban) > 1, 1, 0)) %>%
@@ -382,14 +382,14 @@ uber_filtered <- uber_filtered %>%
 
 
 
-
+#in empirical analysis, filter out providers who switched groups
 column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 &  switching==0))
 
 column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 & Urban==1 & switching==0))
 
 column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 & Urban==0 & switching==0))
 
-column4 = felm(Tot_Clms ~ I(treatment_group*AfterReentry)*Urban + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 & switching==0))
+column4 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*Urban) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 & switching==0))
 
 
 
@@ -397,9 +397,8 @@ column4 = felm(Tot_Clms ~ I(treatment_group*AfterReentry)*Urban + Bene_Avg_Risk_
 
 stargazer(column1,column2, column3,  column4, digits=2, no.space=TRUE, p.auto=TRUE, single.row=FALSE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
-                           c("Year fixed effects", 'Yes', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),
-          title = "Urban vs. Rural Providers", type="text")
+                           c("Year fixed effects", 'Yes', 'Yes', 'Yes',"Yes"), 
+                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes')), type="text")
 
 #summary(riskregression)
 mean(subset(uber_filtered,similar_to_austin==1 & treatment_group==0 & is.na(Urban)==FALSE & switching==0)$Tot_Clms)
@@ -540,11 +539,9 @@ par(cex.lab = 1.3, cex.axis = 1.3, font.lab = 2) #change fonts
 path.plot(synth.res = synth.out, dataprep.res = dataprep.out, tr.intake=56,
           Ylab = "Transit Miles", Xlab = "Month")
 
-mean(gaps[0:56])
 
-mean(gaps[57:99])
 
-mean(dataprep.out$Y0plot%*%synth.out$solution.w)
+
 # Gaps in miles offered between Austin and Synthetic Control City 
 gaps.plot(synth.res = synth.out, dataprep.res = dataprep.out,
           Ylab = "Gap in Transit Riders", Xlab = "Month", tr.intake = 56, Main = NULL)
@@ -553,6 +550,11 @@ gaps.plot(synth.res = synth.out, dataprep.res = dataprep.out,
 # Calculate the treatment effect using mean gap estimates after the treatment
 gaps<- dataprep.out$Y1plot-(dataprep.out$Y0plot%*%synth.out$solution.w)
 
+mean(gaps[0:56])
+
+mean(gaps[57:99])
+
+mean(dataprep.out$Y0plot%*%synth.out$solution.w)
 
 # define pre-treatment periods which are excluded for validation as any period used for matching
 exclude_times <- c(5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
@@ -818,8 +820,7 @@ paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator)  + Bene_Avg_Ri
 stargazer(paralleltrends,  digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq"),
           add.lines = list(
                            c("Year fixed effects", 'Yes','Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes')),
-          title = "Parallel Trends", type="text")
+                           c('Provider fixed effects', 'Yes','Yes')), type="text")
 ```
 
 
@@ -842,8 +843,7 @@ column3 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre 
 stargazer(column1, column2, column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(c("Relative effect", 'No', 'Yes', 'Yes'),
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text",
-          title = "Parallel Trends")
+                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
 
 mean(subset(new_data_1,similar_to_austin==1 & treatment_group==0 )$Tot_Clms)
 
@@ -905,8 +905,7 @@ paralleltrends = felm(Tot_Clms ~ I(treatment_laredo*yearindicator) +  Bene_Avg_R
 stargazer(paralleltrends, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq"),
           add.lines = list(
                            c("Year fixed effects", 'Yes','Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes')),
-          title = "Parallel Trends", type="text")
+                           c('Provider fixed effects', 'Yes','Yes')), type="text")
 ```
 
 
@@ -930,8 +929,7 @@ column3 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) + Bene_Avg_Risk_Scre 
 stargazer(column1,  column2, column3,  digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text",
-          title = "Parallel Trends")
+                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_laredo==0)$Tot_Clms)
 
@@ -1190,8 +1188,7 @@ column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre |
 stargazer(column1,column2,column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(c("Relative effect", 'No', 'Yes', 'Yes'),
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="latex",
-          title = "Parallel Trends")
+                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
 
 mean(subset(merged_df,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
 ```
@@ -1242,8 +1239,7 @@ paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) +  Bene_Avg_Ri
 stargazer(paralleltrends,  digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'Yes','Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes')),
-          title = "Parallel Trends", type="text")
+                           c('Provider fixed effects', 'Yes','Yes')), type="text")
 ```
 
 
@@ -1268,8 +1264,7 @@ column3 = felm(Tot_Clms ~  I(treatment_group*PreExit) + I(treatment_group*AfterR
 stargazer(column1,  column2, column3,  digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text",
-          title = "Parallel Trends")
+                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
 
@@ -1298,8 +1293,7 @@ paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) +  Bene_Avg_Ri
 stargazer(paralleltrends,  digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq"),
           add.lines = list(
                            c("Year fixed effects", 'Yes','Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes')),
-          title = "Parallel Trends", type="text")
+                           c('Provider fixed effects', 'Yes','Yes')), type="text")
 ```
 
 
@@ -1343,8 +1337,7 @@ column2 = felm(Tot_Benes~ I(treatment_group*PreExit) + Bene_Avg_Risk_Scre |PRSCR
 stargazer(column1,column2, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text",
-          title = "Exit Results")
+                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
 

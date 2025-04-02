@@ -10,6 +10,7 @@ output:
 
 ```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message=FALSE,echo = TRUE)
+rm(list=ls())
 library(DescTools)
 library(lfe)
 library(dplyr)
@@ -36,6 +37,11 @@ Read in the data that was prepped with the Directions_API_Requests.py file
 
 ```{r}
 uber_providers = read.csv("Data/uber_providers_Reproduction.csv")
+
+census_df = read.csv("Data/city_census_data.csv")
+
+uber_providers <- merge(uber_providers, census_df, by.y = c("year", "city"), by.x = c("yearindicator", "Prscrbr_City"),
+  all.x = TRUE)
 ```
 
 
@@ -110,22 +116,22 @@ avg_dual <- temp %>%
 uber_providers <- uber_providers %>%
   left_join(avg_dual, by = "PRSCRBR_NPI")
 
+uber_providers$claimsperbene=ifelse((is.na(uber_providers$Tot_Benes)==FALSE),uber_providers$Tot_Clms/uber_providers$Tot_Benes,NA)
+
 #create subset of data for variables of interest in only control and treatment cities
 temp=subset(uber_providers, similar_to_austin==1)
-temp2=temp[,c("Tot_Clms","Tot_Benes","Bene_Avg_Risk_Scre","avg_pre_dual","Prscrbr_City","yearindicator")]
+temp2=temp[,c("Tot_Clms","Tot_Benes","claimsperbene","Bene_Avg_Risk_Scre","avg_pre_dual","standardized_pop","standardized_elderlypop","standardized_medianincome","Prscrbr_City","yearindicator")]
 
 #First Austin in before periods
 summary_stats=as.data.frame(describe(subset(temp2, Prscrbr_City=="Austin" & yearindicator<2018)))
-selected_stats <- summary_stats %>%
-  select(n, mean, sd)
+selected_stats <- summary_stats[, c("n", "mean", "sd")]
 
 
 statspre=as.data.frame(selected_stats)
 
 #Austin in after periods
 summary_stats=as.data.frame(describe(subset(temp2, Prscrbr_City=="Austin" & yearindicator>=2018)))
-selected_stats <- summary_stats %>%
-  select(n, mean, sd)
+selected_stats <- summary_stats[, c("n", "mean", "sd")]
 
 
 statsafter=as.data.frame(selected_stats)
@@ -141,16 +147,14 @@ print(latex_table, type = "latex")
 
 #Control cities in before periods
 summary_stats=as.data.frame(describe(subset(temp2, Prscrbr_City!="Austin" & yearindicator<2018)))
-selected_stats <- summary_stats %>%
-  select(n, mean, sd)
+selected_stats <- summary_stats[, c("n", "mean", "sd")]
 
 
 statspre=as.data.frame(selected_stats)
 
 #Control cities in after periods
 summary_stats=as.data.frame(describe(subset(temp2, Prscrbr_City!="Austin" & yearindicator>=2018)))
-selected_stats <- summary_stats %>%
-  select(n, mean, sd)
+selected_stats <- summary_stats[, c("n", "mean", "sd")]
 
 
 statsafter=as.data.frame(selected_stats)
@@ -167,6 +171,22 @@ print(latex_table, type = "latex")
 
 ```
 
+## Histograms of data
+
+```{r}
+filtered_data=subset(uber_providers, similar_to_austin==1)
+claims_cutoff <- filtered_data[filtered_data$Tot_Clms <= quantile(filtered_data$Tot_Clms, 0.75), ]
+
+filtered_data=subset(filtered_data,is.na(Tot_Benes)==FALSE)
+benes_cutoff <- filtered_data[filtered_data$Tot_Clms <= quantile(filtered_data$Tot_Benes, 0.95), ]
+
+hist(claims_cutoff$Tot_Clms, breaks=50, main="Total Claims Histogram", xlab="Number of Total Claims", ylab="Number of Providers", col="blue", border="black",cex.main=1.5, cex.lab=1.2, cex.axis=1)
+
+#hist(data, main="Histogram Title", xlab="X-axis Label", ylab="Y-axis Label", cex.main=1.5, cex.lab=1.2, cex.axis=1)
+
+hist(benes_cutoff$Tot_Benes, breaks=50, main="Total Beneficiaries Histogram", xlab="Number of Total Beneficiaries", ylab="Number of Providers", col="blue", border="black",cex.main=1.5, cex.lab=1.2, cex.axis=1)
+```
+
 
 # Main Results
 
@@ -176,9 +196,9 @@ Try to get parallel trends with Austin, El Paso, Lubbock, and Amarillo
 ```{r}
 
 
-paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) + Bene_Avg_Risk_Scre| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers, similar_to_austin==1 & yearindicator<2018))
+paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers, similar_to_austin==1 & yearindicator<2018))
 
-paralleltrends3 = felm(Tot_Benes ~ I(treatment_group*yearindicator) + Bene_Avg_Risk_Scre| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers, similar_to_austin==1 & yearindicator<2018  ))
+paralleltrends3 = felm(Tot_Benes ~ I(treatment_group*yearindicator) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers, similar_to_austin==1 & yearindicator<2018))
 
 
 
@@ -203,15 +223,14 @@ column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + AfterReentry |PRSCRB
 column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
 
 
-column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
-
-
+column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
 
 
 stargazer(column1,column2,column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
+                           c('Provider fixed effects', 'Yes','Yes','Yes'),
+                           c("Other controls", 'No', 'No', 'Yes')),type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
 
@@ -227,7 +246,7 @@ column1 = felm(Tot_Benes ~ I(treatment_group*AfterReentry) + AfterReentry |PRSCR
 column2 = felm(Tot_Benes ~ I(treatment_group*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
 
 
-column3 = felm(Tot_Benes ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+column3 = felm(Tot_Benes ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
 
 
 
@@ -235,14 +254,100 @@ column3 = felm(Tot_Benes ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre 
 
 
 
-stargazer(column1,  column2, column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
+stargazer(column1,  column2, column3, digits=4, report = "vcsp", no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
+                           c('Provider fixed effects', 'Yes','Yes','Yes'),
+                           c("Other controls", 'No', 'No', 'Yes')),type="text")
 
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(Tot_Benes)==FALSE)$Tot_Benes)
 
 ```
+
+## Time effect
+
+```{r}
+
+
+column3 = felm(Tot_Clms ~ I(treatment_group*I(yearindicator==2013)) + I(treatment_group*I(yearindicator==2014)) + I(treatment_group*I(yearindicator==2015))+ I(treatment_group*I(yearindicator==2016)) + I(treatment_group*I(yearindicator==2018)) + I(treatment_group*I(yearindicator==2019)) + I(treatment_group*I(yearindicator==2020)) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+
+stargazer(column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
+          add.lines = list(
+                           c("Year fixed effects", 'No', 'Yes', 'Yes'), 
+                           c('Provider fixed effects', 'Yes','Yes','Yes'),
+                           c("Other controls", 'No', 'No', 'Yes')),type="text")
+
+
+library(ggplot2)
+
+# Create dataframe
+time_effect_estimates <- data.frame(
+  year = factor(c(2013, 2014, 2015, 2016, 2018, 2019, 2020)),
+  estimate = c(-43.39, -21.58, -33.04, -11.61, -73.43, -194.81, -179.83),
+  se = c(83.61, 62.26, 42.93, 23.17, 26.61, 89.35, 53.78)
+)
+
+time_effect_estimates$lower <- time_effect_estimates$estimate - 1.96 * time_effect_estimates$se
+time_effect_estimates$upper <- time_effect_estimates$estimate + 1.96 * time_effect_estimates$se
+
+# Plot with error bars
+ggplot(time_effect_estimates, aes(x = year, y = estimate)) +
+  geom_point(size = 3, color = "blue") + 
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") + 
+  labs(
+       x = "Year",
+       y = "Austin*Year Coefficient Estimate") +
+  theme_minimal()
+
+
+```
+
+
+
+
+
+## Non-Opioid Claims
+
+```{r}
+uber_providers$AfterReentry=ifelse(uber_providers$yearindicator>2017,1,0)
+
+paralleltrends = felm(I(Tot_Clms-Opioid_Tot_Clms) ~ I(treatment_group*yearindicator) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers, similar_to_austin==1 & yearindicator<2018))
+
+
+
+stargazer(paralleltrends, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
+          add.lines = list(
+                           c("Year fixed effects", 'Yes','Yes'), 
+                           c('Provider fixed effects', 'Yes','Yes'),
+                            c('Other controls', 'Yes','Yes')),
+          title = "Parallel Trends", type="text")
+
+column1 = felm(I(Tot_Clms-Opioid_Tot_Clms) ~ I(treatment_group*AfterReentry) + AfterReentry |PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+
+column2 = felm(I(Tot_Clms-Opioid_Tot_Clms) ~ I(treatment_group*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+
+
+column3 = felm(I(Tot_Clms-Opioid_Tot_Clms) ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+
+#column4 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome + standardized_white + standardized_hispanic|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1))
+
+
+stargazer(column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
+          add.lines = list(
+                           c("Year fixed effects", 'Yes', 'Yes', 'Yes'), 
+                           c('Provider fixed effects', 'Yes','Yes','Yes'),
+                           c("Other controls", 'Yes', 'No', 'Yes')),type="text")
+
+temp=subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(Opioid_Tot_Clms)==FALSE)
+temp$difference=temp$Tot_Clms-temp$Opioid_Tot_Clms
+mean(temp$difference)
+
+```
+
+
+
+
 
 
 # HTE
@@ -267,18 +372,15 @@ avg_dual <- temp %>%
   summarize(avg_pre_dual = mean(dual_perc, na.rm = TRUE))
 
 # Step 3: Merge this average back into the original dataframe
-uber_providers <- uber_providers %>%
+hte <- uber_providers %>%
   left_join(avg_risk_score, by = "PRSCRBR_NPI")
-
-
-
 
 #standardize the risk scores for easier interpretation
 
 
-stand_dev=sd(subset(uber_providers,similar_to_austin==1 & is.na(avg_pre_risk)==FALSE)$avg_pre_risk)
+stand_dev=sd(subset(hte,similar_to_austin==1 & is.na(avg_pre_risk)==FALSE)$avg_pre_risk)
 
-uber_providers$st_avg_pre_risk=uber_providers$avg_pre_risk/stand_dev
+hte$st_avg_pre_risk=hte$avg_pre_risk/stand_dev
 ```
 
 
@@ -288,26 +390,30 @@ Main HTE results using the average for each provider from 2013-2015
 
 ```{r}
 
-column1 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_avg_pre_risk)==FALSE))
+hte$AfterReentry=ifelse(hte$yearindicator>2017,1,0)
 
-column2 = felm(Tot_Clms ~  I(treatment_group*AfterReentry)+ I(I(treatment_group*AfterReentry)*st_avg_pre_risk) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_avg_pre_risk)==FALSE))
+column1 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(hte,similar_to_austin==1 & is.na(st_avg_pre_risk)==FALSE))
+
+column2 = felm(Tot_Clms ~  I(treatment_group*AfterReentry)+ I(I(treatment_group*AfterReentry)*st_avg_pre_risk) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(hte,similar_to_austin==1 & is.na(st_avg_pre_risk)==FALSE))
 
 
-column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(avg_pre_dual)==FALSE))
+column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(hte,similar_to_austin==1 & is.na(avg_pre_dual)==FALSE))
 
-column4 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*avg_pre_dual) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(avg_pre_dual)==FALSE))
+column4 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*avg_pre_dual) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(hte,similar_to_austin==1 & is.na(avg_pre_dual)==FALSE))
 
 
 
 #summary(riskregression)
 
 stargazer(column1,column2, column3, column4, digits=2, no.space=TRUE, p.auto=TRUE, single.row=FALSE, omit.stat=c("ser", "adj.rsq","rsq"),
-          add.lines = list(
+          add.lines = list(c("Relative effect size", 'Yes', 'Yes', 'Yes','Yes', 'Yes','Yes'), 
                            c("Year fixed effects", 'Yes', 'Yes', 'Yes','Yes', 'Yes','Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes', 'Yes','Yes')), type="text")
+                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes', 'Yes','Yes'),
+                           c('Other controls', 'Yes','Yes','Yes','Yes', 'Yes','Yes')), type="text")
 
-mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(avg_pre_dual)==FALSE)$Tot_Clms)
-mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(st_avg_pre_risk)==FALSE)$Tot_Clms)
+
+mean(subset(hte,similar_to_austin==1 & treatment_group==0 & is.na(st_avg_pre_risk)==FALSE)$Tot_Clms)
+mean(subset(hte,similar_to_austin==1 & treatment_group==0 & is.na(avg_pre_dual)==FALSE)$Tot_Clms)
 
 ```
 
@@ -330,14 +436,14 @@ stand_dev=sd(subset(uber_providers,similar_to_austin==1 & is.na(risk_2015)==FALS
 
 uber_providers$st_risk_2015=uber_providers$risk_2015/stand_dev
 
-column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_risk_2015)==FALSE))
+column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_risk_2015)==FALSE))
 
-column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*st_risk_2015) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_risk_2015)==FALSE))
+column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*st_risk_2015) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(st_risk_2015)==FALSE))
 
 
-column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(dual_2015)==FALSE))
+column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(dual_2015)==FALSE))
 
-column4 = felm(Tot_Clms ~I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*dual_2015) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(dual_2015)==FALSE))
+column4 = felm(Tot_Clms ~I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*dual_2015) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & is.na(dual_2015)==FALSE))
 
 
 
@@ -349,10 +455,12 @@ column4 = felm(Tot_Clms ~I(treatment_group*AfterReentry) + I(I(treatment_group*A
 stargazer(column1,column2, column3, column4, digits=2, no.space=TRUE, p.auto=TRUE, single.row=FALSE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
                            c("Year fixed effects", 'Yes', 'Yes', 'Yes','Yes', 'Yes','Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes', 'Yes','Yes')), type="text")
+                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes', 'Yes','Yes'),
+                           c("Other controls", 'Yes', 'Yes', 'Yes','Yes', 'Yes','Yes')), type="text")
 
-mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(avg_pre_dual)==FALSE)$Tot_Clms)
-mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(st_avg_pre_risk)==FALSE)$Tot_Clms)
+
+mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(st_risk_2015)==FALSE)$Tot_Clms)
+mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(dual_2015)==FALSE)$Tot_Clms)
 
 ```
 
@@ -362,8 +470,133 @@ mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & is.na(st_
 
 # Mechanisms
 
+## Supply Side
 
-## Median of mean walking duration
+```{r}
+
+library('Synth')
+
+provider_numbers <- uber_providers %>%
+  group_by(Prscrbr_City, yearindicator) %>%
+  summarise(value = n_distinct(PRSCRBR_NPI))
+
+
+provider_numbers$City=provider_numbers$Prscrbr_City
+provider_numbers$t=provider_numbers$yearindicator-2013
+
+
+
+provider_numbers$X=0
+provider_numbers$X=ifelse(provider_numbers$City=="Amarillo",1,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Austin",2,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="El Paso",3,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Lubbock",4,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Dallas",5,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Fort Worth",6,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Plano",7,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Arlington",8,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Garland",9,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Irving",10,provider_numbers$X)
+provider_numbers$X=ifelse(provider_numbers$City=="Grand Prairie",11,provider_numbers$X)
+
+
+
+
+provider_numbers=subset(provider_numbers, X>0)
+
+provider_numbers$X <- as.numeric(provider_numbers$X)
+provider_numbers$t <- as.integer(provider_numbers$t)
+
+
+
+#add column for value from each month for each city
+df_combined <- provider_numbers %>%
+  filter(t %in% c(0:7)) %>%
+  dplyr::select(City, t, value) %>%
+  pivot_wider(names_from = t, values_from = value, names_prefix = "value_") 
+ 
+
+# Join back to original data frame
+
+provider_numbers <- provider_numbers %>%
+  left_join(df_combined, by = "City")
+
+
+provider_numbers= as.data.frame(provider_numbers)
+
+library('Synth')
+
+# prep for synthetic control
+dataprep.out <- dataprep(
+  foo = provider_numbers,
+  #predictors=value,
+  predictors = c("value_0","value_2","value_3"),
+  predictors.op = "mean",
+  time.predictors.prior = c(0,2,3),
+  dependent = "value",
+  unit.variable = "X",
+  unit.names.variable = "City",
+  time.variable = "t",
+  treatment.identifier = 2, 
+  controls.identifier = c(11,1,3,4,5,6,7,8,9,10), 
+  time.optimize.ssr = c((0):(4)),
+  time.plot = c((0):(7)) 
+)
+
+synth.out <- synth(dataprep.out)
+synth.tables <- synth.tab(dataprep.res = dataprep.out, synth.res = synth.out)
+
+
+# City Weights in the Synthetic Austin
+print(synth.tables$tab.w)
+
+
+# Mean of Pretreatment Characteristics
+
+print(synth.tables$tab.pred)
+
+
+# Trends of miles offered: Austin vs. Synthetic Control City
+par(cex.lab = 1.3, cex.axis = 1.3, font.lab = 2) #change fonts
+path.plot(synth.res = synth.out, dataprep.res = dataprep.out, tr.intake=4,
+          Ylab = "Number of Providers", Xlab = "Year")
+
+
+
+
+# Gaps in miles offered between Austin and Synthetic Control City 
+gaps.plot(synth.res = synth.out, dataprep.res = dataprep.out,
+          Ylab = "Gap in Number of Providers", Xlab = "Year", tr.intake = 4, Main = NULL)
+
+
+# Calculate the treatment effect using mean gap estimates after the treatment
+gaps<- dataprep.out$Y1plot-(dataprep.out$Y0plot%*%synth.out$solution.w)
+
+mean(gaps[0:4])
+
+mean(gaps[5:7])
+
+mean(dataprep.out$Y0plot%*%synth.out$solution.w)
+
+# define pre-treatment periods which are excluded for validation as any period used for matching
+exclude_times <- c(0,2,3)
+# Define the pre-treatment period
+pre_treatment_period <- 0:4
+# Filter out the time points to exclude from the pre-treatment period
+valid_times <- setdiff(pre_treatment_period, exclude_times)
+# Compute gaps for the valid times
+valid_gaps <- gaps[valid_times + 1]  
+# Calculate RMSPE on the filtered data
+pre_RMSPE <- sqrt(mean(valid_gaps^2))
+post_RMSPE = sqrt(mean(gaps[5:7]^2))
+ratio=post_RMSPE/pre_RMSPE
+print(paste("Austin RMSPE ratio:",ratio))
+
+```
+
+
+## Demand Side
+### Median of mean walking duration
 
 ```{r}
 #mean_duration is first calculated in the python file
@@ -383,22 +616,21 @@ uber_filtered <- uber_filtered %>%
 
 
 #in empirical analysis, filter out providers who switched groups
-column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 &  switching==0))
+column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 &  switching==0))
 
-column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 & Urban==1 & switching==0))
 
-column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 & Urban==0 & switching==0))
 
-column4 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*Urban) + Bene_Avg_Risk_Scre|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 & switching==0))
+column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + I(I(treatment_group*AfterReentry)*Urban) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_filtered,similar_to_austin==1 & switching==0))
 
 
 
 
 
-stargazer(column1,column2, column3,  column4, digits=2, no.space=TRUE, p.auto=TRUE, single.row=FALSE, omit.stat=c("ser", "adj.rsq","rsq"),
+stargazer(column1,column2, digits=2, no.space=TRUE, p.auto=TRUE, single.row=FALSE, omit.stat=c("ser", "adj.rsq","rsq"),
           add.lines = list(
-                           c("Year fixed effects", 'Yes', 'Yes', 'Yes',"Yes"), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes','Yes')), type="text")
+                           c("Year fixed effects", 'Yes',"Yes"), 
+                           c('Provider fixed effects','Yes','Yes'),
+                           c('Other controls','Yes','Yes')), type="text")
 
 #summary(riskregression)
 mean(subset(uber_filtered,similar_to_austin==1 & treatment_group==0 & is.na(Urban)==FALSE & switching==0)$Tot_Clms)
@@ -406,12 +638,14 @@ mean(subset(uber_filtered,similar_to_austin==1 & treatment_group==0 & is.na(Urba
 ```
 
 
-## Traffic SDID Results
+### Traffic SDID Results
 
 Here we use SDID to analyze if the re-entry of uber and lyft causes an increase in traffic in Austin. 
 
 ```{r}
 traffic_data=read.csv("Data/TxDOT_AADT_Annuals.csv")
+
+
 
 
 traffic_data <- traffic_data %>%
@@ -421,6 +655,9 @@ traffic_data <- traffic_data %>%
     names_prefix = "AADT_",
     values_to = "AADT"
   )
+
+traffic_data <- merge(traffic_data, census_df, by.y = c("year", "city"), by.x = c("year", "DIST_NM"),
+  all.x = TRUE)
 
 traffic_df=as.data.frame(traffic_data)
 
@@ -445,7 +682,7 @@ traffic_sdid$treated=ifelse(traffic_sdid$treatment_group==1 & traffic_sdid$year>
 
 mean(subset(traffic_sdid, treatment_group==0)$AADT)
 
-traffic_sdid=traffic_sdid[,c("ID","year","AADT","treated")]
+traffic_sdid=traffic_sdid[,c("ID","year","AADT","treated","standardized_pop")]
 
 traffic_sdid <- traffic_sdid[with(traffic_sdid, order(year, treated, ID)), ]
 
@@ -465,11 +702,84 @@ sprintf('se: %1.10f', se)
 
 ```
 
+### Other Cities Analysis
+
+```{r}
+uber_providers$AfterReentry=ifelse(uber_providers$yearindicator>2017,1,0)
 
 
-## Synthetic Matching of Transit Data
+uber_providers$similar_to_rr=ifelse(uber_providers$Prscrbr_City=="Round Rock"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock",1,0)
 
-### Synthetic Control
+
+# Take out all providers who moved between treatment group and control cities
+# First, get number of distinct cities for each provider within our subset
+
+provider_city_count <- subset(uber_providers, similar_to_rr==1) %>%
+  group_by(PRSCRBR_NPI) %>%
+  summarise(city_count = n_distinct(Prscrbr_City))
+
+
+# Get providers that are in more than one city 
+
+multi_city_providers <- provider_city_count %>%
+  filter(city_count > 1) %>%
+  pull(PRSCRBR_NPI)
+
+# Check if these providers have Austin as one of their cities
+providers_with_austin <- subset(uber_providers, similar_to_rr==1) %>%
+  filter(Prscrbr_City == 'Round Rock') %>%
+  pull(PRSCRBR_NPI) %>%
+  unique()
+
+# Find providers who moved from control city to Austin or vice versa
+
+mixed_providers <- intersect(multi_city_providers, providers_with_austin)
+
+# Create the 'mixed' column in uber_providers to identify the providers who moved
+
+uber_providers <- uber_providers %>% 
+  mutate(mixed = ifelse(PRSCRBR_NPI %in% mixed_providers, 1, 0))
+
+
+#Now define similar_to_austin as providers who are in treatment or control cities and do not move between
+
+uber_providers$similar_to_rr=ifelse(uber_providers$mixed==0 &(uber_providers$Prscrbr_City=="Round Rock"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock"),1,0)
+
+# Define treatment_group as any provider from Austin
+
+temp=subset(uber_providers, Prscrbr_City=="Round Rock")
+uber_providers$treatment_group=0
+uber_providers[uber_providers$PRSCRBR_NPI %in% unique(temp$PRSCRBR_NPI),]$treatment_group=1
+
+
+paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers, similar_to_rr==1 & yearindicator<2018))
+
+
+stargazer(paralleltrends, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
+          add.lines = list(
+                           c("Year fixed effects", 'Yes','Yes'), 
+                           c('Provider fixed effects', 'Yes','Yes')),
+          title = "Parallel Trends", type="text")
+
+
+
+column4 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_rr==1))
+
+
+
+
+
+stargazer(column4, digits=2, no.space=TRUE, p.auto=TRUE, single.row=FALSE, omit.stat=c("ser", "adj.rsq","rsq"),
+          add.lines = list(
+                           c("Year fixed effects", "Yes"), 
+                           c('Provider fixed effects', 'Yes'),
+                           c('Other controls', 'Yes')), type="text")
+
+mean(subset(uber_providers,similar_to_rr==1 & treatment_group==0 )$Tot_Clms)
+
+```
+
+### Synthetic Matching of Transit Data
 
 Here we run synthetic control for Austin with Amarillo, El Paso, Lubbock, Dallas, Fort Worth, and Plano as control cities
 
@@ -494,7 +804,7 @@ Texas_miles$X=ifelse(Texas_miles$City=="Plano",7,Texas_miles$X)
 #add column for value from each month for each city
 df_combined <- Texas_miles %>%
   filter(t %in% c(1:55)) %>%
-  select(City, t, value) %>%
+  dplyr::select(City, t, value) %>%
   pivot_wider(names_from = t, values_from = value, names_prefix = "value_") 
  
 
@@ -571,7 +881,7 @@ ratio=post_RMSPE/pre_RMSPE
 print(paste("Austin RMSPE ratio:",ratio))
 ```
 
-### Synthetic Control Placebo Tests
+#### Synthetic Control Placebo Tests
 
 ```{r, echo=FALSE}
 
@@ -801,9 +1111,48 @@ print(paste("Plano RMSPE ratio:",ratio))
 
 ```{r}
 
+uber_providers$similar_to_austin=ifelse(uber_providers$Prscrbr_City=="Austin"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock",1,0)
+
+
+# Take out all providers who moved between treatment group and control cities
+# First, get number of distinct cities for each provider within our subset
+
+provider_city_count <- subset(uber_providers, similar_to_austin==1) %>%
+  group_by(PRSCRBR_NPI) %>%
+  summarise(city_count = n_distinct(Prscrbr_City))
+
+
+# Get providers that are in more than one city 
+
+multi_city_providers <- provider_city_count %>%
+  filter(city_count > 1) %>%
+  pull(PRSCRBR_NPI)
+
+# Check if these providers have Austin as one of their cities
+providers_with_austin <- subset(uber_providers, similar_to_austin==1) %>%
+  filter(Prscrbr_City == 'Austin') %>%
+  pull(PRSCRBR_NPI) %>%
+  unique()
+
+# Find providers who moved from control city to Austin or vice versa
+
+mixed_providers <- intersect(multi_city_providers, providers_with_austin)
+
+# Create the 'mixed' column in uber_providers to identify the providers who moved
+
+uber_providers <- uber_providers %>% 
+  mutate(mixed = ifelse(PRSCRBR_NPI %in% mixed_providers, 1, 0))
+
+
+#Now define similar_to_austin as providers who are in treatment or control cities and do not move between
 
 uber_providers$similar_to_austin=ifelse(uber_providers$mixed==0 &(uber_providers$Prscrbr_City=="Austin"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock"),1,0)
 
+# Define treatment_group as any provider from Austin
+
+temp=subset(uber_providers, Prscrbr_City=="Austin")
+uber_providers$treatment_group=0
+uber_providers[uber_providers$PRSCRBR_NPI %in% unique(temp$PRSCRBR_NPI),]$treatment_group=1
 new_data_1=subset(uber_providers, similar_to_austin==1 & is.na(Tot_Clms)==FALSE)
 
 cutoff_high=quantile(new_data_1$Tot_Clms, prob=(.999))[[1]]
@@ -814,7 +1163,7 @@ new_data_1$Tot_Clms=Winsorize(new_data_1$Tot_Clms, minval=cutoff_low, maxval=cut
 
 
 
-paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator)  + Bene_Avg_Risk_Scre| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(new_data_1, similar_to_austin==1 & yearindicator<2016 ))
+paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator)  + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(new_data_1, similar_to_austin==1 & yearindicator<2016 ))
 
 
 stargazer(paralleltrends,  digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq"),
@@ -835,7 +1184,7 @@ column1 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + AfterReentry |PRSCR
 column2 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(new_data_1,similar_to_austin==1))
 
 
-column3 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(new_data_1,similar_to_austin==1))
+column3 = felm(Tot_Clms ~  I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(new_data_1,similar_to_austin==1))
 
 
 
@@ -899,7 +1248,7 @@ uber_providers[uber_providers$PRSCRBR_NPI %in% unique(temp$PRSCRBR_NPI),]$treatm
 
 
 
-paralleltrends = felm(Tot_Clms ~ I(treatment_laredo*yearindicator) +  Bene_Avg_Risk_Scre|yearindicator + PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers, yearindicator<2018 & similar_to_laredo==1))
+paralleltrends = felm(Tot_Clms ~ I(treatment_laredo*yearindicator) +  Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|yearindicator + PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers, yearindicator<2018 & similar_to_laredo==1))
 
 
 stargazer(paralleltrends, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq"),
@@ -919,7 +1268,7 @@ column1 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) + AfterReentry |PRSCR
 column2 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_laredo==1))
 
 
-column3 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_laredo==1))
+column3 = felm(Tot_Clms ~ I(treatment_laredo*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_laredo==1))
 
 
 #summary(riskregression)
@@ -981,7 +1330,7 @@ column1 = felm(Tot_Clms ~ I(treatment_group*placeboAfter) + placeboAfter|PRSCRBR
 column2 = felm(Tot_Clms ~ I(treatment_group*placeboAfter) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2017))
 
 
-column3 = felm(Tot_Clms ~ I(treatment_group*placeboAfter) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2017))
+column3 = felm(Tot_Clms ~ I(treatment_group*placeboAfter) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2017))
 
 
 
@@ -1105,7 +1454,7 @@ provider_cities <- uber_providers %>%
 merged_df <- merged_df %>%
   left_join(provider_cities, by = "PRSCRBR_NPI") %>%
   mutate(city_list = ifelse(is.na(Tot_Clms), map_chr(cities, ~paste(.x, collapse = ", ")), NA)) %>%
-  select(-cities)
+  dplyr::select(-cities)
 
 # Create city column based on what cities it has been in the past, default to Austin if they've been in Austin and more than one city, default to Amarillo if they've not been in Austin and more than one city
 merged_df$Prscrbr_City=ifelse(is.na(merged_df$city_list)==FALSE & str_count(merged_df$city_list, ",")==0, merged_df$city_list, merged_df$Prscrbr_City)
@@ -1166,6 +1515,21 @@ merged_df <- merged_df %>%
   mutate(Bene_Avg_Risk_Scre = ifelse(is.na(Bene_Avg_Risk_Scre), mean(Bene_Avg_Risk_Scre, na.rm = TRUE), Bene_Avg_Risk_Scre)) %>%
   ungroup()
 
+merged_df <- merged_df %>%
+  group_by(PRSCRBR_NPI) %>%
+  mutate(standardized_elderlypop = ifelse(is.na(standardized_elderlypop), mean(standardized_elderlypop, na.rm = TRUE), standardized_elderlypop)) %>%
+  ungroup()
+
+merged_df <- merged_df %>%
+  group_by(PRSCRBR_NPI) %>%
+  mutate(standardized_pop = ifelse(is.na(standardized_pop), mean(standardized_pop, na.rm = TRUE), standardized_pop)) %>%
+  ungroup()
+
+merged_df <- merged_df %>%
+  group_by(PRSCRBR_NPI) %>%
+  mutate(standardized_medianincome = ifelse(is.na(standardized_medianincome), mean(standardized_medianincome, na.rm = TRUE), standardized_medianincome)) %>%
+  ungroup()
+
 
 ```
 
@@ -1180,7 +1544,7 @@ column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + AfterReentry |PRSCRB
 column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) |PRSCRBR_NPI + yearindicator |0|PRSCRBR_NPI, data=subset(merged_df,similar_to_austin==1))
 
 
-column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator |0|PRSCRBR_NPI, data=subset(merged_df,similar_to_austin==1))
+column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator |0|PRSCRBR_NPI, data=subset(merged_df,similar_to_austin==1))
 
 
 
@@ -1195,6 +1559,45 @@ mean(subset(merged_df,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
 
 
 # Appendix other results
+
+## Original Exit Results
+
+```{r}
+
+paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers, similar_to_austin==1 & yearindicator<2016))
+
+paralleltrends3 = felm(Tot_Benes ~ I(treatment_group*yearindicator) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome| PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers, similar_to_austin==1 & yearindicator<2016))
+
+
+
+stargazer(paralleltrends, paralleltrends3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
+          add.lines = list(
+                           c("Year fixed effects", 'Yes','Yes'), 
+                           c('Provider fixed effects', 'Yes','Yes')),
+          title = "Parallel Trends", type="text")
+
+```
+
+
+```{r}
+uber_providers$PreExit=ifelse(uber_providers$yearindicator<2016,1,0)
+
+column1 = felm(Tot_Clms ~ I(treatment_group*PreExit) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator |0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2018))
+
+column2 = felm(Tot_Benes~ I(treatment_group*PreExit) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator |0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2018))
+
+
+
+
+stargazer(column1,column2, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
+          add.lines = list(
+                           c("Year fixed effects", 'Yes', 'Yes', 'Yes'), 
+                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
+
+mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
+
+```
+
 
 ## Both shocks
 
@@ -1230,7 +1633,7 @@ uber_providers <- uber_providers %>%
 uber_providers$similar_to_austin=ifelse(uber_providers$mixed==0 &(uber_providers$Prscrbr_City=="Austin"|uber_providers$Prscrbr_City=="El Paso"|uber_providers$Prscrbr_City=="Amarillo"|uber_providers$Prscrbr_City=="Lubbock"),1,0)
 
 
-paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) +  Bene_Avg_Risk_Scre|yearindicator + PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers, yearindicator<2016 & similar_to_austin==1))
+paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) +  Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|yearindicator + PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers, yearindicator<2016 & similar_to_austin==1))
 
 
 
@@ -1247,14 +1650,13 @@ stargazer(paralleltrends,  digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("se
 
 ```{r}
 
-uber_providers$PreExit=ifelse(uber_providers$yearindicator<2016,1,0)
 
 column1 = felm(Tot_Clms ~ I(treatment_group*PreExit) + PreExit + I(treatment_group*AfterReentry) + AfterReentry |PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 ))
 
 column2 = felm(Tot_Clms ~ I(treatment_group*PreExit) + I(treatment_group*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 ))
 
 
-column3 = felm(Tot_Clms ~  I(treatment_group*PreExit) + I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 ))
+column3 = felm(Tot_Clms ~  I(treatment_group*PreExit) + I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 ))
 
 
 #summary(riskregression)
@@ -1271,6 +1673,28 @@ mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
 ```
 
 
+## COVID robustness
+
+```{r}
+uber_providers$AfterReentry=ifelse(uber_providers$yearindicator>2017,1,0)
+
+column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + AfterReentry |PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2021))
+
+column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2021))
+
+
+column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2021))
+
+
+stargazer(column1,column2,column3, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
+          add.lines = list(
+                           c("Year fixed effects", 'No', 'Yes', 'Yes'), 
+                           c('Provider fixed effects', 'Yes','Yes','Yes'),
+                           c("Other controls", 'No', 'No', 'Yes')),type="latex")
+
+mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & yearindicator<2020)$Tot_Clms)
+
+```
 
 
 ## No Transient Providers
@@ -1287,7 +1711,7 @@ uber_providers <- uber_providers %>%
   ungroup()
 
 
-paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) +  Bene_Avg_Risk_Scre|yearindicator + PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers, yearindicator<2018 & similar_to_austin==1 & moving_allyears==0))
+paralleltrends = felm(Tot_Clms ~ I(treatment_group*yearindicator) +  Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|yearindicator + PRSCRBR_NPI|0|PRSCRBR_NPI, data=subset(uber_providers, yearindicator<2018 & similar_to_austin==1 & moving_allyears==0))
 
 
 stargazer(paralleltrends,  digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq"),
@@ -1307,7 +1731,7 @@ column1 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + AfterReentry|PRSCRBR
 column2 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & moving_allyears==0))
 
 
-column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & moving_allyears==0))
+column3 = felm(Tot_Clms ~ I(treatment_group*AfterReentry) + Bene_Avg_Risk_Scre + standardized_elderlypop + standardized_pop + standardized_medianincome|PRSCRBR_NPI + yearindicator|0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & moving_allyears==0))
 
 
 #summary(riskregression)
@@ -1322,26 +1746,6 @@ stargazer(column1,  column2, column3,  digits=2, no.space=TRUE, p.auto=TRUE, omi
 mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0 & moving_allyears==0)$Tot_Clms)
 ```
 
-
-## Original Exit Results
-
-```{r}
-
-column1 = felm(Tot_Clms ~ I(treatment_group*PreExit) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator |0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2018))
-
-column2 = felm(Tot_Benes~ I(treatment_group*PreExit) + Bene_Avg_Risk_Scre |PRSCRBR_NPI + yearindicator |0|PRSCRBR_NPI, data=subset(uber_providers,similar_to_austin==1 & yearindicator<2018))
-
-
-
-
-stargazer(column1,column2, digits=2, no.space=TRUE, p.auto=TRUE, omit.stat=c("ser", "adj.rsq","rsq"),
-          add.lines = list(
-                           c("Year fixed effects", 'No', 'Yes', 'Yes'), 
-                           c('Provider fixed effects', 'Yes','Yes','Yes')),type="text")
-
-mean(subset(uber_providers,similar_to_austin==1 & treatment_group==0)$Tot_Clms)
-
-```
 
 
 
